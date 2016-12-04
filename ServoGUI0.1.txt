@@ -21,6 +21,7 @@ void setup()
  for (int i=0; i<4;i++)
  {
    servs[i]= new ser_graph();
+   servs[i].alphamax=180;
  }
  servs[1].alpha=90;
  servs[2].alpha=45;
@@ -148,33 +149,14 @@ void mouseClicked()
 
 void servrotation()
 {
-  int j=150;
-  int k=250;
+  int j=300;
   for (int i=0; i<4; i++)
   {
-   if(mouseX>=servs[i].pos.x-100 && mouseX<=servs[i].pos.x+100 && mousePressed==true) 
+   if(mouseX>=servs[i].pos.x-100 && mouseX<=servs[i].pos.x+100 && mouseY>=servs[i].pos.y-100 && mouseY<=servs[i].pos.y+10 && mousePressed==true) 
    {
-    if(mouseY > fp-110 && mouseY<=fp)
-    {
-      float my=-mouseY+k;
-      float n=my/100;
-      float a;
-      a=asin(n);
-      int b;
-      b=round(degrees(a));
-      servs[i].alpha=b;
-      
-    }
-    else
-    {
-    float mx=mouseX-j;
-    float n=mx/100;
-    float a;
-    a=acos(n);
-    int b;
-    b=round(degrees(a));
-    servs[i].alpha=b;
-    }
+    int mx=j-mouseX;
+    int a = round(map(mx,50,250,0,180));
+    servs[i].alpha=a;
    }
    j+=250;
   }
