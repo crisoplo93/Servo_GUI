@@ -1,0 +1,232 @@
+import processing.serial.*;
+import cc.arduino.*;
+
+
+Arduino ard1;
+
+
+ser_graph[] servs = new ser_graph[4];
+buttons[] bts = new buttons[4];
+int fp, orin, orin2, arl,pt;
+boolean con=false;
+int col=0, cpt=0;
+boolean cnting=false;
+boolean up=true;
+boolean slting=false;
+void setup()
+{ 
+ size(1050,500);
+ fp=height/2;
+ rectMode(CENTER);
+ for (int i=0; i<4;i++)
+ {
+   servs[i]= new ser_graph();
+ }
+ servs[1].alpha=90;
+ servs[2].alpha=45;
+ servs[3].alpha=135;
+ for (int i=0; i<4;i++)
+ {
+   bts[i]= new buttons();
+ }
+ arl=Arduino.list().length;
+
+}
+
+void selpt()
+{
+   arl=Arduino.list().length;
+  background(col);
+  if(col<100 && up) col++;
+  if(col==100) up=false;
+  if(col>0 && !up) col--;
+  if(col==0) up=true;
+  if(arl==0)
+  {
+    fill(253,206,18);
+    textSize(80);
+    textAlign(CENTER,CENTER);
+    text("Arduino board not found",width/2, height/2);
+  }
+   if(arl==1) 
+  {
+    String str="Starting";
+    textSize(80);
+    fill(253,206,18);
+   textAlign(CENTER,CENTER);
+    text("Used port : "+Arduino.list()[0],width/2, height/2);
+    textSize(34);
+     text(str,width/2, height/2+150);
+     if(!cnting)
+     {
+      thread("contpt");
+     }
+   }
+   if (arl>1)
+   {
+     slting=true;
+     noFill();
+     stroke(255);
+     strokeWeight(5);
+     if(!cnting)
+     {
+     rect((width/2)+223, (height/2)-75,50,50,7);//up button
+     rect((width/2)+223, (height/2)+85,50,50,7);//down button
+     rect((width/2)+425, (height/2)+10,100,50,7);//ok button
+     textSize(48);
+     fill(255);
+     text("OK",(width/2)+425, (height/2)+5);
+     triangle((width/2)+223, (height/2)-89, (width/2)+208, (height/2)-65,(width/2)+238, (height/2)-65);
+     triangle((width/2)+223, (height/2)+99, (width/2)+208, (height/2)+75,(width/2)+238, (height/2)+75);
+     textSize(80);
+     fill(253,206,18);
+     textAlign(CENTER,CENTER);
+     text("Select port : "+Arduino.list()[cpt],width/2, height/2);
+    }
+    else
+    {
+     textSize(80);
+     textAlign(CENTER,CENTER);
+     text("Conecting to "+Arduino.list()[cpt],width/2, height/2); 
+    }
+   } 
+  delay(10);
+}
+
+void contpt()
+{ 
+  cnting=true;
+  ard1=new Arduino(this, Arduino.list()[cpt], 57600);
+  slting=false;
+  con=true;  
+  cnting=false;
+}
+
+void mouseClicked()
+{ 
+ for (int i=0; i<4;i++)
+{
+ if ( mouseX>=bts[i].pos.x-25 && mouseX<=bts[i].pos.x+25 && mouseY>=bts[i].pos.y-25 && mouseY<=bts[i].pos.y+25)
+ {     
+  if(servs[i].alpha>0)
+  {
+   servs[i].alpha--;      
+  }
+ } 
+ 
+ if ( mouseX>=bts[i].pos1.x-25 && mouseX<=bts[i].pos1.x+25 && mouseY>=bts[i].pos1.y-25 && mouseY<=bts[i].pos1.y+25)
+ {
+  if(servs[i].alpha<servs[i].alphamax)
+  {
+   servs[i].alpha++; 
+  }  
+ }
+}
+ if (con==false && mouseX>=(width/2)+400 && mouseX<=(width/2)+450 && mouseY>=(height/2)-15 && mouseY<=(height/2)+35)
+ {
+   thread("contpt");  
+ }
+  if (slting==true && mouseX>=(width/2)+198 && mouseX<=(width/2)+248 
+  && mouseY>=(height/2)-100 && mouseY<=(height/2)-50)
+  {
+    
+    if(cpt>0 && cpt < arl) 
+    {
+    cpt--;
+    }
+  }
+  if (slting==true && mouseX>=(width/2)+198 && mouseX<=(width/2)+248 
+  && mouseY>=(height/2)+60 && mouseY<=(height/2)+105)
+  {
+    if(cpt>=0 && cpt < arl-1) 
+    {
+    cpt++;
+    }
+    
+  }
+}
+
+void servrotation()
+{
+  int j=150;
+  int k=250;
+  for (int i=0; i<4; i++)
+  {
+   if(mouseX>=servs[i].pos.x-100 && mouseX<=servs[i].pos.x+100 && mousePressed==true) 
+   {
+    if(mouseY > fp-110 && mouseY<=fp)
+    {
+      float my=-mouseY+k;
+      float n=my/100;
+      float a;
+      a=asin(n);
+      int b;
+      b=round(degrees(a));
+      servs[i].alpha=b;
+      
+    }
+    else
+    {
+    float mx=mouseX-j;
+    float n=mx/100;
+    float a;
+    a=acos(n);
+    int b;
+    b=round(degrees(a));
+    servs[i].alpha=b;
+    }
+   }
+   j+=250;
+  }
+}
+ 
+void diggui()
+{
+   background(0);
+   textSize(12);
+   text("Connected to : "+Arduino.list()[cpt],10,10);
+ 
+
+ ard1.servoWrite(9,servs[0].alpha); 
+ orin=150;
+ orin2=orin-20;
+ fill(255);
+ textSize(10);
+text(mouseX+","+mouseY,10,20);
+ for (int i=0;i<4; i++)
+ {
+   translate(orin2,fp+110);
+   bts[i].display();
+   bts[i].pos.x=orin2;
+   bts[i].pos.y=fp+110;
+   bts[i].pos1.x=orin2+60;
+   bts[i].pos1.y=fp+110;
+   resetMatrix();
+   orin2+=250;
+ }
+ resetMatrix();
+ stroke(0);
+ strokeWeight(2);
+ for(int i=0; i<4;i++)
+ {
+  translate(orin, fp);
+  rotate(radians(-servs[i].alpha));
+  servs[i].display();
+  servs[i].pos.x=orin;
+  servs[i].pos.y=fp;
+  resetMatrix();
+  textSize(48);
+  translate(orin-30,fp+75);
+  fill(255);
+  text(round(servs[i].alpha)+"°",0,0);
+  resetMatrix();
+  orin+=250;
+ }
+ servrotation();
+}
+
+void draw()
+{
+  if (con==false) selpt();
+  else diggui();
+}
